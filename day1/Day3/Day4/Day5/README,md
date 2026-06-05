@@ -1,0 +1,130 @@
+Day 5 – If, Case, For Loop and For Generate
+
+Objectives
+
+* Understand hardware inference from Verilog constructs
+* Learn latch inference using incomplete if and case statements
+* Design multiplexers and demultiplexers using for loops
+* Implement scalable hardware using generate statements
+* Understand the difference between for and generate loops
+
+Files Used
+
+* incomplete_if.v
+* incomplete_case.v
+* complete_case.v
+* mux_generate.v
+* demux_for.v
+* ripple_carry_adder.v
+
+### Incomplete IF — Infers Latch
+
+```verilog
+// INCOMPLETE IF — latch inferred for y when i0=0
+module incomp_if (input i0, i1, i2, output reg y);
+   always @ (*)
+      if(i0) y <= i1;
+      // No else — latch inferred!
+endmodule
+```
+
+### Incomplete Case — Infers Latch
+
+```verilog
+// INCOMPLETE CASE — latch inferred for sel=2'b10, 2'b11
+module incomp_case (input i0, i1, i2, input [1:0] sel, output reg y);
+   always @ (*)
+   case(sel)
+      2'b00 : y = i0;
+      2'b01 : y = i1;
+      // Missing cases → latch!
+   endcase
+endmodule
+```
+
+### Complete Case — No Latch
+
+```verilog
+module comp_case (input i0, i1, i2, input [1:0] sel, output reg y);
+   always @ (*)
+   case(sel)
+      2'b00 : y = i0;
+      2'b01 : y = i1;
+      default : y = i2;   // Covers all remaining cases
+   endcase
+endmodule
+```
+
+### For Loop — 4:1 MUX
+
+```verilog
+module mux_generate (input i0, i1, i2, i3, input [1:0] sel, output reg y);
+   wire [3:0] i_int;
+   assign i_int = {i3, i2, i1, i0};
+   integer k;
+   always @ (*)
+      for(k = 0; k < 4; k = k+1)
+         if(k == sel) y = i_int[k];
+endmodule
+```
+
+### For Loop — 1:8 Demux
+
+```verilog
+module demux_generate (output o0,o1,o2,o3,o4,o5,o6,o7, input [2:0] sel, input i);
+   reg [7:0] y_int;
+   assign {o7,o6,o5,o4,o3,o2,o1,o0} = y_int;
+   integer k;
+   always @ (*) begin
+      y_int = 8'b0;
+      for(k = 0; k < 8; k++)
+         if(k == sel) y_int[k] = i;
+   end
+endmodule
+```
+
+### Generate — Ripple Carry Adder (8-bit)
+
+```verilog
+module fa (input a, b, c, output co, sum);
+   assign {co, sum} = a + b + c;
+endmodule
+
+module rca (input [7:0] num1, num2, output [8:0] sum);
+   wire [7:0] int_sum, int_co;
+   genvar i;
+   generate
+      for (i = 1; i < 8; i = i+1)
+         fa u_fa_1(.a(num1[i]), .b(num2[i]), .c(int_co[i-1]),
+                   .co(int_co[i]), .sum(int_sum[i]));
+   endgenerate
+   fa u_fa_0(.a(num1[0]), .b(num2[0]), .c(1'b0),
+             .co(int_co[0]), .sum(int_sum[0]));
+   assign sum[7:0] = int_sum;
+   assign sum[8]   = int_co[7];
+endmodule
+```
+
+| Construct | Use Case |
+|-----------|----------|
+| `for` loop (inside always) | Evaluate/select logic at runtime |
+| `generate for` | Replicate hardware structures at elaboration time |
+
+⸻
+
+Results
+
+1. Incomplete If Statement
+
+2.Incomplete Case Statement
+
+3. Complete Case Statement
+
+4.Demultiplexer Simulation
+
+5.Ripple Carry Adder Synthesis
+⸻
+
+Key Learning
+
+Learned how Verilog control structures influence synthesized hardware, understood latch inference caused by incomplete assignments, and implemented scalable designs using generate blocks.
