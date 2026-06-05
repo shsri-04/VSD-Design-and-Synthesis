@@ -1,130 +1,127 @@
-Day 4 – Gate Level Simulation (GLS) and Synthesis-Simulation Mismatch
+RTL Design and Synthesis using SKY130 Technology
 
-Objectives
+About the Workshop
 
-* Understand Gate Level Simulation (GLS)
-* Compare RTL Simulation with Synthesized Netlist Simulation
-* Study synthesis-simulation mismatches
-* Learn the effects of blocking and non-blocking assignments
-* Analyze coding mistakes that lead to incorrect hardware behavior
+This repository documents my learning journey, hands-on exercises, Verilog designs, synthesis outputs, and simulation results from the RTL Design and Synthesis using SKY130 Technology Workshop conducted by VLSI System Design (VSD).
 
-Files Used
+The workshop provided practical exposure to RTL design using Verilog, simulation using open-source EDA tools, synthesis using Yosys, and analysis of synthesized netlists using the SKY130 standard cell library.
 
-* ternary_operator_mux.v
-* bad_mux.v
-* blocking_caveat.v
-* blocking_caveat_netlist.v
+Tools Used
 
-⸻
+* iVerilog – Open-source Verilog compiler and simulator
+* GTKWave – Waveform viewer for simulation analysis
+* Yosys – Open-source synthesis suite
+* SKY130 Standard Cell Library – Open-source PDK library for synthesis
+Workshop Overview
 
-### Gate Level Simulation (GLS)
+Day 1 – Introduction to RTL Design and Synthesis
 
-```
-Netlist (.v) ──┐
-               ├──► iVerilog ──► Simulation Output
-Test Bench ────┘
-Gate Models ───┘
-```
+Topics Covered:
 
-- GLS verifies **logical correctness** of the synthesized netlist
-- Netlist is logically equivalent to RTL but uses actual standard cells
-- The **same testbench** used for RTL can be reused for GLS
+Introduction to RTL Design Flow
+Verilog RTL Coding Basics
+Testbench Development
+Simulation using iVerilog
+Waveform Analysis using GTKWave
+Introduction to Logic Synthesis
+Synthesizing a 2:1 Multiplexer using Yosys
+Understanding Setup Time and Hold Time
+Learning Outcomes:
 
-### Synthesis-Simulation Mismatch
+Understood the complete RTL-to-GDSII design flow.
+Performed RTL simulation and waveform verification.
+Generated synthesized netlists using SKY130 libraries. ``
+Day 2 – Timing Libraries and Synthesis Techniques
 
-**Cause 1: Missing Sensitivity List**
+Topics Covered:
 
-```verilog
-// BAD MUX — only sensitive to sel
-module bad_mux (input i0, i1, sel, output reg y);
-   always @ (sel)          // ← WRONG: missing i0, i1
-      if(sel) y <= i1; else y <= i0;
-endmodule
+SKY130 Standard Cell Library (.lib)
+Process, Voltage, and Temperature (PVT) Corners
+Hierarchical Synthesis
+Flat Synthesis
+Sub-module Synthesis
+Various Flip-Flop Coding Styles
+Asynchronous Reset D Flip-Flop
+Asynchronous Set D Flip-Flop
+Synchronous Reset D Flip-Flop
+Learning Outcomes:
 
-// GOOD MUX — sensitive to all inputs
-module good_mux (input i0, i1, sel, output reg y);
-   always @ (*)            // ← CORRECT
-      if(sel) y <= i1; else y <= i0;
-endmodule
-```
+Explored standard cell timing libraries.
+Compared hierarchical and flat synthesis approaches.
+Analyzed synthesized hardware generated from different flip-flop coding styles.
+``
 
-**Cause 2: Blocking vs Non-Blocking Statements**
+Day 3 – Combinational and Sequential Logic Optimization
 
-```verilog
-// BLOCKING CAVEAT — wrong ordering causes simulation mismatch
-module blocking_caveat (input a, b, c, output reg d);
-   reg x;
-   always @ (*) begin
-      d = x & c;   // Uses OLD value of x (evaluated first)
-      x = a | b;   // x updated AFTER d is computed
-   end
-endmodule
-```
+Topics Covered:
 
-| Statement | Behaviour |
-|-----------|-----------|
-| `=` (Blocking) | Executes sequentially; previous statement completes before next begins |
-| `<=` (Non-Blocking) | All RHS evaluated first, then all LHS updated simultaneously |
+Logic Optimization Techniques
+Constant Propagation
+Boolean Simplification
+Removal of Redundant Logic
+Sequential Logic Optimization
+Optimization of Unused Flip-Flops and Outputs
+Learning Outcomes:
 
-> **Rule:** Always use `<=` (non-blocking) inside `always @(posedge clk)` sequential blocks.
+Learned how synthesis tools simplify logic automatically.
+Observed reduction in gate count through optimization.
+Understood how synthesis can eliminate unnecessary hardware. ``
+Day 4 – Gate Level Simulation and Synthesis-Simulation Mismatch
 
----
+Topics Covered:
 
-Results
+Gate Level Simulation (GLS)
+Generated Netlist Verification
+Blocking vs Non-Blocking Assignments
+Sensitivity List Issues
+Common RTL Coding Mistakes
+Synthesis and Simulation Mismatch Analysis
+Learning Outcomes:
 
-Bad Mux Example
-----
-rtl code
----
-<img width="1360" height="768" alt="bad_mux_code png" src="https://github.com/user-attachments/assets/251d3143-e605-47c7-82e5-d1949e05cdfa" />
+Verified synthesized netlists using GLS.
+Identified coding styles that lead to mismatches.
+Understood best practices for RTL coding.
+``
 
----
-synthesis result
----
-<img width="1360" height="768" alt="bad_mux_synthesis png" src="https://github.com/user-attachments/assets/0d358447-3b6e-4216-8e1d-571044336dbb" />
+Day 5 – Verilog Control Statements and Hardware Inference
 
----
-gtkwave output
----
-<img width="1360" height="768" alt="gtkwave_bad_mux png" src="https://github.com/user-attachments/assets/fb17cf00-a047-4cf2-9b2a-29b6c6db2309" />
+Topics Covered:
 
----
-Blocking Assignment caveat
----
-code
----
-<img width="1360" height="768" alt="blocking_caveat_code png" src="https://github.com/user-attachments/assets/d54fab05-5341-4a6f-b837-1653be03e3c5" />
+If Statements and Latch Inference
+Case Statements and Default Conditions
+For Loops in RTL Design
+Generate Statements
+Ripple Carry Adder Design using Generate Blocks
+Multiplexer and Demultiplexer Design
+Learning Outcomes:
 
----
-synthesis 
----
+Learned how Verilog constructs map to hardware.
+Understood latch inference and how to avoid it.
+Implemented scalable hardware using generate blocks.
+``
 
-<img width="1360" height="768" alt="blocking_caveat_synthesis png" src="https://github.com/user-attachments/assets/ccd134b3-8a60-4d1b-8605-57f017c89fc9" />
+Key Takeaways
 
----
-gtkwave
----
-<img width="1360" height="768" alt="gtkwave_blocking_caveat png" src="https://github.com/user-attachments/assets/7f5a8862-313b-42c8-8d69-76d49efff1a0" />
+RTL simulation is essential before synthesis.
+Gate Level Simulation helps verify synthesized designs.
+Proper sensitivity lists prevent simulation mismatches.
+Incomplete if/case statements may infer unintended latches.
+Blocking and non-blocking assignments must be used appropriately.
+Synthesis tools perform powerful logic optimizations automatically.
+Coding style significantly affects synthesized hardware.
+`` References
 
+VSD RTL Design and Synthesis Workshop
+SKY130 Open PDK Documentation
+Yosys Open Synthesis Suite Documentation
+GTKWave Documentation
+Icarus Verilog Documentation
+``
 
-Ternary Operator
----
-synthesis setup
----
-<img width="1360" height="768" alt="ternary_synthesis_setup png" src="https://github.com/user-attachments/assets/2d0fcea3-1d90-48d4-be54-1d392823d8d5" />
+Author
 
----
-Synthesis
----
-<img width="1360" height="768" alt="trenary_opt_mux png" src="https://github.com/user-attachments/assets/9ee1f922-adf5-4328-bfb5-84fbf38336d4" />
+Lokashsri M
 
----
-gtkwave output
----
+Electronics and Communication Engineering
 
-<img width="1360" height="768" alt="gtkwave_ternary_opt png" src="https://github.com/user-attachments/assets/1f5d3412-0b33-45a2-b5a0-869788ed0a11" />
-
-
-Key Learning
-
-Learned the importance of Gate Level Simulation in validating synthesized hardware and understood how incomplete sensitivity lists and improper use of blocking assignments can create synthesis-simulation mismatches.
+Hands-on learning repository created as part of the RTL Design and Synthesis using SKY130 Technology Workshop.
